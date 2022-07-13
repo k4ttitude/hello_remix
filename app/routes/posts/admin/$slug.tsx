@@ -16,6 +16,7 @@ import { getPost, updatePost } from "~/models/post.server";
 import { requireUserId } from "../../../session.server";
 import invariant from "tiny-invariant";
 import { type Post } from "@prisma/client";
+import { PostView } from "../../../components/posts";
 
 type LoaderData = Post;
 export const loader: LoaderFunction = async ({ request, params }) => {
@@ -62,7 +63,7 @@ export const action: ActionFunction = async ({ request }) => {
 
   await updatePost({ slug, title, markdown });
 
-  return redirect("/posts/admin");
+  return redirect(`/posts/${slug}`);
 };
 
 const inputClassName = `w-full rounded border border-gray-500 px-2 py-1 text-lg`;
@@ -71,9 +72,15 @@ export default function NewPost() {
   const post = useLoaderData() as LoaderData;
   const errors = useActionData();
   const transition = useTransition();
-  const isCreating = Boolean(transition.submission);
+  const isUpdating = Boolean(transition.submission);
 
-  return (
+  return transition.submission ? (
+    <PostView
+      post={
+        Object.fromEntries(transition.submission?.formData) as unknown as Post
+      }
+    />
+  ) : (
     <Form method="post">
       <p>
         <label>
@@ -84,6 +91,8 @@ export default function NewPost() {
           <input
             type="text"
             name="title"
+            required
+            minLength={10}
             className={inputClassName}
             defaultValue={post.title}
           />
@@ -123,9 +132,9 @@ export default function NewPost() {
         <button
           type="submit"
           className="rounded bg-blue-500 py-2 px-4 text-white hover:bg-blue-600 focus:bg-blue-400 disabled:bg-blue-300"
-          disabled={isCreating}
+          disabled={isUpdating}
         >
-          {isCreating ? "Creating..." : "Create Post"}
+          {isUpdating ? "Creating..." : "Create Post"}
         </button>
       </p>
     </Form>
