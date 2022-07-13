@@ -26,3 +26,10 @@ export async function createPost(
 ) {
   return prisma.post.create({ data: post });
 }
+
+export function updatePost({
+  slug,
+  ...data
+}: Pick<Post, "title" | "markdown" | "slug">) {
+  return prisma.post.update({ where: { slug }, data });
+}
